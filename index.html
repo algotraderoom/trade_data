@@ -345,10 +345,18 @@ function connectWebSocket() {
     };
 
     ws.onerror = () => setWsStatus(false, "WebSocket error");
+    ws.onclose = (event)=>{
 
-    ws.onclose = () => {
-      setWsStatus(false, "Reconnecting...");
-      reconnectTimer = setTimeout(connectWebSocket, 2000);
+        console.log(
+            "WS CLOSED:",
+            event.code,
+            event.reason
+        );
+
+        setWsStatus(false, "Reconnecting...");
+
+        reconnectTimer = setTimeout(connectWebSocket, 2000);
+
     };
   } catch (err) {
     setWsStatus(false, "WebSocket unavailable");
@@ -654,7 +662,7 @@ function renderDashboard() {
    dataStore = YOUR_OBJECT; activeIndex = "NIFTY"; renderTabs(); renderDashboard();
 */
 
-connectWebSocket();
+//connectWebSocket();
 </script>
 
 <div class="disclaimer-banner">
