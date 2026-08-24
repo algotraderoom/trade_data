@@ -138,8 +138,100 @@ tr:hover{background:rgba(90,167,255,.05)}
     left:auto;
     right:auto;
 }
+.ws-popup{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.65);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    z-index:10000;
+}
+
+.ws-box{
+
+    width:350px;
+    background:#182238;
+    border:1px solid #304262;
+    border-radius:12px;
+    padding:25px;
+    color:white;
+
+    box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+
+
+.ws-box input{
+
+    width:100%;
+    padding:10px;
+    margin:12px 0;
+
+    background:#0e1628;
+    color:white;
+
+    border:1px solid #405477;
+    border-radius:6px;
+
+}
+
+
+.ws-box button{
+
+    width:100%;
+    padding:10px;
+
+    background:#1d8cf8;
+    color:white;
+
+    border:none;
+    border-radius:6px;
+
+    cursor:pointer;
+
+}
 </style>
 </head>
+<div id="wsPopup" class="ws-popup">
+
+    <div class="ws-box">
+
+        <h3>🔌 Connect Dashboard</h3>
+
+
+        <label>WebSocket URL</label>
+
+        <input 
+            id="wsInput"
+            type="text"
+            value="ws://127.0.0.1:5000/ws/signals"
+        >
+
+
+        <label>Client ID</label>
+
+        <input 
+            id="clientIdInput"
+            type="text"
+            value="dashboard"
+        >
+
+
+        <label>API Key</label>
+
+        <input 
+            id="apiKeyInput"
+            type="password"
+            value="1234"
+        >
+
+        <button onclick="saveWSConfig()">
+            Connect
+        </button>
+
+    </div>
+
+</div>
 <body>
 <div class="app">
   <div class="topbar">
@@ -160,32 +252,14 @@ tr:hover{background:rgba(90,167,255,.05)}
 </div>
 
 <script>
-/*
-  ===========================
-  WEBSOCKET CONFIGURATION
-  ===========================
-  Change this to your bot's WebSocket endpoint.
 
-  Expected incoming message:
-  {
-    "NIFTY": {
-      "expiry": ["2026-08-25"],
-      "spot_price": 24219.05,
-      "support_strikes": [...],
-      "resistance_strikes": [...],
-      "max_pain": 24200,
-      "atm_pcr": {...},
-      "dyn_level": [...]
-    },
-    "SENSEX": {...},
-    "BANKNIFTY": {...}
-  }
+//const WS_URL = "ws://127.0.0.1:5000/ws/signals";
+//const WS_URL = "wss://ea6c-2a09-bac1-36a0-248-00-1c6-11.ngrok-free.app/ws/signals"
 
-  Your Python bot should JSON-serialize numpy values first:
-  json.dumps(data, default=lambda x: x.item() if hasattr(x, "item") else x)
-*/
 
-const WS_URL = "ws://127.0.0.1:5000/ws/signals";
+let WS_URL = "";
+let WS_CLIENT_ID = "";
+let WS_API_KEY = "";
 
 let ws = null;
 let reconnectTimer = null;
@@ -206,9 +280,13 @@ function connectWebSocket() {
         setWsStatus(true, "WebSocket connected");
 
         ws.send(JSON.stringify({
-            client_id:"dashboard1",
-            api_key:"1234",
+
+            client_id: WS_CLIENT_ID,
+
+            api_key: WS_API_KEY,
+
             mode:"dashboard"
+
         }));
 
         if (reconnectTimer) clearTimeout(reconnectTimer);
@@ -305,6 +383,61 @@ function trendPill(trend) {
 function confidenceClass(c) {
   const x = String(c || "").toLowerCase();
   return x === "high" ? "high" : x === "medium" ? "medium" : "low";
+}
+
+function saveWSConfig(){
+
+    const url = document
+        .getElementById("wsInput")
+        .value
+        .trim();
+
+
+    const clientId = document
+        .getElementById("clientIdInput")
+        .value
+        .trim();
+
+
+    const apiKey = document
+        .getElementById("apiKeyInput")
+        .value
+        .trim();
+
+
+
+    if(!url){
+        alert("Please enter WebSocket URL");
+        return;
+    }
+
+
+    if(!clientId){
+        alert("Please enter Client ID");
+        return;
+    }
+
+
+    if(!apiKey){
+        alert("Please enter API Key");
+        return;
+    }
+
+
+
+    WS_URL = url;
+    WS_CLIENT_ID = clientId;
+    WS_API_KEY = apiKey;
+
+
+
+    document
+        .getElementById("wsPopup")
+        .style.display="none";
+
+
+    connectWebSocket();
+
 }
 
 function actionClass(action) {
