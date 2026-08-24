@@ -1,0 +1,591 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Delta Trading Analytics</title>
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16x16.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="manifest" href="assets/site.webmanifest">
+<meta name="theme-color" content="#0b1020">
+
+<style>
+:root{
+  --bg:#0b1020; --panel:#121a2d; --panel2:#182238; --border:#263453;
+  --text:#edf3ff; --muted:#8fa1bf; --green:#28d17c; --red:#ff5d73;
+  --yellow:#ffc857; --blue:#5aa7ff; --purple:#a78bfa; --cyan:#35d6e8;
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:radial-gradient(circle at top,#17233d 0,#0b1020 42%);
+  color:var(--text); font-family:Inter,Segoe UI,Arial,sans-serif;
+}
+.app{max-width:1700px;margin:auto;padding:18px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.title h1{margin:0;font-size:24px;letter-spacing:.3px}
+.title p{margin:4px 0 0;color:var(--muted);font-size:12px}
+.status{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);padding:9px 13px;border-radius:12px;font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+.dot.on{background:var(--green);box-shadow:0 0 10px var(--green)}
+.tabs{display:flex;gap:8px;margin-bottom:14px;overflow:auto}
+.tab{
+  border:1px solid var(--border);background:var(--panel);color:var(--muted);
+  padding:9px 17px;border-radius:10px;cursor:pointer;font-weight:700
+}
+.tab.active{background:#213252;color:#fff;border-color:#3b5c91}
+.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+.card{
+  background:linear-gradient(145deg,rgba(24,34,56,.98),rgba(15,23,41,.98));
+  border:1px solid var(--border);border-radius:14px;padding:14px;
+  box-shadow:0 8px 30px rgba(0,0,0,.18)
+}
+.span12{grid-column:span 12}.span8{grid-column:span 8}.span6{grid-column:span 6}
+.span4{grid-column:span 4}.span3{grid-column:span 3}.span2{grid-column:span 2}
+.section-title{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:11px}
+.spot-card{display:flex;justify-content:space-between;align-items:center}
+.spot{font-size:32px;font-weight:800}.expiry{color:var(--muted);font-size:12px;margin-top:5px}
+.pill{display:inline-flex;padding:5px 9px;border-radius:20px;font-size:11px;font-weight:800}
+.green{color:#061a10;background:var(--green)} .red{color:#22070c;background:var(--red)}
+.yellow{color:#211700;background:var(--yellow)} .blue{color:#07152b;background:var(--blue)}
+.metric{font-size:23px;font-weight:800}.metric small{font-size:11px;color:var(--muted);font-weight:500}
+.metric-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mini{background:rgba(255,255,255,.025);border:1px solid #22304b;border-radius:10px;padding:10px}
+.mini label{display:block;color:var(--muted);font-size:10px;margin-bottom:5px;text-transform:uppercase}
+.levels{display:flex;gap:7px;flex-wrap:wrap}
+.level{
+  padding:8px 11px;border-radius:9px;background:#202b45;border:1px solid #304262;
+  font-weight:750;font-size:13px
+}
+.level.support{border-color:rgba(40,209,124,.5)} .level.resistance{border-color:rgba(255,93,115,.5)}
+.bar{height:7px;background:#25314a;border-radius:99px;overflow:hidden;margin-top:6px}
+.fill{height:100%;border-radius:99px}
+.table-wrap{overflow:auto}
+table{width:100%;border-collapse:collapse;min-width:950px}
+th{position:sticky;top:0;background:#151f35;color:#91a5c5;font-size:10px;text-transform:uppercase;letter-spacing:.6px}
+th,td{padding:9px 8px;border-bottom:1px solid #23304a;text-align:right;font-size:11px;white-space:nowrap}
+th:first-child,td:first-child,th:nth-child(2),td:nth-child(2),th:nth-child(4),td:nth-child(4),
+th:nth-child(11),td:nth-child(11),th:nth-child(12),td:nth-child(12){text-align:left}
+tr:hover{background:rgba(90,167,255,.05)}
+.high{color:var(--green);font-weight:800}.medium{color:var(--yellow);font-weight:800}.low{color:var(--muted)}
+.state{font-weight:750}.breakout{color:var(--green)}.breakdown{color:var(--red)}
+.action-ce{background:rgba(40,209,124,.13);color:#67e7a1}
+.action-pe{background:rgba(255,93,115,.13);color:#ff8b9b}
+.no-trade{color:#7788a7}
+.action{
+  padding:5px 8px;border-radius:7px;font-weight:800;font-size:10px
+}
+.pcr{display:flex;justify-content:space-between;align-items:center}
+.pcr-value{font-size:27px;font-weight:850}
+.footer{margin-top:12px;color:#61728f;font-size:10px;text-align:right}
+.error{color:#ff8292}
+@media(max-width:1100px){
+  .span8,.span6,.span4{grid-column:span 12}.span3{grid-column:span 6}.span2{grid-column:span 4}
+}
+@media(max-width:650px){
+  .app{padding:10px}.span3,.span2{grid-column:span 12}.spot{font-size:26px}
+}
+.tooltip {
+    position: relative;
+    cursor: help;
+    display: inline-block;
+}
+
+.tooltip .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+
+    width: 240px;
+    max-width: calc(100vw - 30px);
+
+    background: #182238;
+    color: #edf3ff;
+
+    text-align: left;
+    padding: 10px 12px;
+
+    border-radius: 8px;
+    border: 1px solid #304262;
+
+    position: absolute;
+    z-index: 9999;
+
+    bottom: 150%;
+    left: 0;
+
+    font-size: 12px;
+    line-height: 1.5;
+
+    /* Text wrapping */
+    white-space: normal;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+
+    box-shadow: 0 8px 25px rgba(0,0,0,.4);
+
+    transition: opacity .2s ease;
+    pointer-events: none;
+}
+
+/* Center tooltips for middle positions */
+.tooltip:hover .tooltip-text {
+    visibility:visible;
+    opacity:1;
+}
+
+/* Keep tooltip inside screen on right side */
+.tooltip-right .tooltip-text {
+    left:auto;
+    right:auto;
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="title">
+      <h1>⚡ Delta Trading Analytics</h1>
+      <p>Dynamic support/resistance • PCR • OI positioning • breakout/breakdown intelligence</p>
+    </div>
+    <div class="status">
+      <span id="wsDot" class="dot"></span>
+      <span id="wsText">WebSocket disconnected</span>
+      <span id="lastUpdate"></span>
+    </div>
+  </div>
+
+  <div id="tabs" class="tabs"></div>
+  <div id="dashboard"></div>
+  <div class="footer">Live data is supplied by your trading bot through WebSocket.</div>
+</div>
+
+<script>
+/*
+  ===========================
+  WEBSOCKET CONFIGURATION
+  ===========================
+  Change this to your bot's WebSocket endpoint.
+
+  Expected incoming message:
+  {
+    "NIFTY": {
+      "expiry": ["2026-08-25"],
+      "spot_price": 24219.05,
+      "support_strikes": [...],
+      "resistance_strikes": [...],
+      "max_pain": 24200,
+      "atm_pcr": {...},
+      "dyn_level": [...]
+    },
+    "SENSEX": {...},
+    "BANKNIFTY": {...}
+  }
+
+  Your Python bot should JSON-serialize numpy values first:
+  json.dumps(data, default=lambda x: x.item() if hasattr(x, "item") else x)
+*/
+
+const WS_URL = "ws://127.0.0.1:5000/ws/signals";
+
+let ws = null;
+let reconnectTimer = null;
+let dataStore = {};
+let activeIndex = null;
+
+function setWsStatus(connected, text) {
+  document.getElementById("wsDot").classList.toggle("on", connected);
+  document.getElementById("wsText").textContent = text;
+}
+
+function connectWebSocket() {
+  try {
+    ws = new WebSocket(WS_URL);
+
+    ws.onopen = () => {
+
+        setWsStatus(true, "WebSocket connected");
+
+        ws.send(JSON.stringify({
+            client_id:"dashboard1",
+            api_key:"1234",
+            mode:"dashboard"
+        }));
+
+        if (reconnectTimer) clearTimeout(reconnectTimer);
+    };
+
+    ws.onmessage = event => {
+
+        try {
+
+            const incoming = JSON.parse(event.data);
+
+            console.log("WS MESSAGE:", incoming);
+
+
+            // Ignore heartbeat
+            if (incoming.type === "ping") {
+                ws.send(JSON.stringify({
+                    type:"pong"
+                }));
+                return;
+            }
+
+
+            // Ignore auth messages
+            if (incoming.type === "auth_ok") {
+                console.log("Dashboard authenticated");
+                return;
+            }
+
+
+            // Only update dashboard data
+            if (incoming.type === "dashboard") {
+
+                const payload = incoming.data;
+
+                if(payload && typeof payload === "object") {
+
+                    dataStore = payload;
+
+                    if(!activeIndex || !dataStore[activeIndex]){
+                        activeIndex = Object.keys(dataStore)[0];
+                    }
+
+                    renderTabs();
+                    renderDashboard();
+
+                    document.getElementById("lastUpdate").textContent =
+                        " • " + new Date().toLocaleTimeString();
+                }
+            }
+
+        }
+        catch(err){
+            console.error("WS parse error:",err);
+        }
+    };
+
+    ws.onerror = () => setWsStatus(false, "WebSocket error");
+
+    ws.onclose = () => {
+      setWsStatus(false, "Reconnecting...");
+      reconnectTimer = setTimeout(connectWebSocket, 2000);
+    };
+  } catch (err) {
+    setWsStatus(false, "WebSocket unavailable");
+    reconnectTimer = setTimeout(connectWebSocket, 2000);
+  }
+}
+
+function fmtNumber(v, digits=0) {
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return "-";
+  return Number(v).toLocaleString("en-IN", {
+    minimumFractionDigits: digits,
+    maximumFractionDigits: digits
+  });
+}
+
+function fmtOI(v) {
+  if (v === null || v === undefined || Number.isNaN(Number(v))) return "-";
+  const n = Number(v);
+  if (Math.abs(n) >= 10000000) return (n/10000000).toFixed(2) + " Cr";
+  if (Math.abs(n) >= 100000) return (n/100000).toFixed(2) + " L";
+  if (Math.abs(n) >= 1000) return (n/1000).toFixed(1) + " K";
+  return fmtNumber(n);
+}
+
+function trendPill(trend) {
+  const t = String(trend || "").toLowerCase();
+  if (t === "bull") return '<span class="pill green">BULL</span>';
+  if (t === "bear") return '<span class="pill red">BEAR</span>';
+  return '<span class="pill yellow">NEUTRAL</span>';
+}
+
+function confidenceClass(c) {
+  const x = String(c || "").toLowerCase();
+  return x === "high" ? "high" : x === "medium" ? "medium" : "low";
+}
+
+function actionClass(action) {
+  const a = String(action || "");
+  if (a.includes("BUY_CE") || a.includes("BREAKOUT")) return "action action-ce";
+  if (a.includes("BUY_PE") || a.includes("BREAKDOWN")) return "action action-pe";
+  return "action no-trade";
+}
+
+function stateClass(state) {
+  const s = String(state || "").toUpperCase();
+  if (s.includes("BREAKOUT")) return "breakout";
+  if (s.includes("BREAKDOWN")) return "breakdown";
+  return "state";
+}
+
+function renderTabs() {
+  const tabs = document.getElementById("tabs");
+  tabs.innerHTML = Object.keys(dataStore).map(symbol => `
+    <button class="tab ${symbol === activeIndex ? "active" : ""}"
+            onclick="activeIndex='${symbol}';renderTabs();renderDashboard()">
+      ${symbol}
+    </button>
+  `).join("");
+}
+
+function renderDashboard() {
+  const d = dataStore[activeIndex];
+  if (!d) {
+    document.getElementById("dashboard").innerHTML =
+      '<div class="card"><div class="error">Waiting for market data...</div></div>';
+    return;
+  }
+
+  const p = d.atm_pcr || {};
+  //const levels = Array.isArray(d.dyn_level) ? d.dyn_level : [];
+  const levels = Array.isArray(d.dyn_level) ? [...d.dyn_level].sort((a,b) => Number(b.strike) - Number(a.strike)): [];
+  const expiry = Array.isArray(d.expiry) ? d.expiry.join(", ") : (d.expiry || "-");
+
+  const support = (d.support_strikes || []).map(x =>
+    `<span class="level support">🟢 ${fmtNumber(x)}</span>`).join("");
+
+  const resistance = (d.resistance_strikes || []).map(x =>
+    `<span class="level resistance">🔴 ${fmtNumber(x)}</span>`).join("");
+
+  const strongest = [...levels].sort((a,b) =>
+    Number(b.final_score || 0) - Number(a.final_score || 0)
+  )[0];
+
+  document.getElementById("dashboard").innerHTML = `
+    <div class="grid">
+
+      <div class="card span4">
+        <div class="section-title">${activeIndex} • Market</div>
+        <div class="spot-card">
+          <div>
+            <div class="spot">${fmtNumber(d.spot_price, 2)}</div>
+            <div class="expiry">Expiry: ${expiry}</div>
+          </div>
+          <div>
+            <div class="pill blue">ATM ${fmtNumber(p.ATM)}</div>
+            <div style="height:7px"></div>
+            <div style="color:var(--muted);font-size:11px">Range ${p.Range || "-"}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span4">
+        <div class="section-title">Max Pain</div>
+        <div class="metric">${fmtNumber(d.max_pain)}</div>
+        <div style="color:var(--muted);font-size:11px;margin-top:4px">
+          Spot distance:
+          ${d.spot_price && d.max_pain
+            ? fmtNumber(Number(d.spot_price)-Number(d.max_pain), 2)
+            : "-"}
+        </div>
+      </div>
+
+      <div class="card span4">
+        <div class="section-title">Top Dynamic Level</div>
+        ${strongest ? `
+          <div class="metric">${fmtNumber(strongest.strike)}</div>
+          <div style="margin-top:5px">
+            <span class="${stateClass(strongest.state)}">${strongest.type} • ${strongest.state}</span>
+          </div>
+          <div style="color:var(--muted);font-size:11px;margin-top:5px">
+            Score ${fmtNumber(strongest.final_score,2)} • ${strongest.action}
+          </div>
+        ` : '<div class="metric">-</div>'}
+      </div>
+
+      <div class="card span6">
+        <div class="section-title">PCR • Open Interest</div>
+        <div class="metric-row">
+          <div class="mini">
+            <label>PCR OI</label>
+            <div class="pcr">
+              <div class="pcr-value">${fmtNumber(p.PCR_OI,2)}</div>
+              ${trendPill(p.PCR_OI_Trend)}
+            </div>
+          </div>
+          <div class="mini">
+            <label>CE / PE OI</label>
+            <div style="font-size:14px;font-weight:800">${fmtOI(p.CE_OI)} / ${fmtOI(p.PE_OI)}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span6">
+        <div class="section-title">PCR • Change in OI</div>
+        <div class="metric-row">
+          <div class="mini">
+            <label>PCR Chg OI</label>
+            <div class="pcr">
+              <div class="pcr-value">${fmtNumber(p.PCR_Chg_OI,2)}</div>
+              ${trendPill(p.PCR_Chg_OI_Trend)}
+            </div>
+          </div>
+          <div class="mini">
+            <label>CE / PE Chg OI</label>
+            <div style="font-size:14px;font-weight:800">
+              ${fmtOI(p.CE_Chg_OI)} / ${fmtOI(p.PE_Chg_OI)}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card span12">
+        <div class="section-title">Dynamic Support / Resistance Intelligence</div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Strike</th><th>Type</th><th>Probability</th><th>State</th>
+                <th>Strength</th><th>Weakness</th><th>Reversal</th>
+                <th>Breakdown</th><th>Breakout</th><th>Final Score</th>
+                <th>Trade State</th><th>Action</th><th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${levels.map(row => `
+                <tr>
+                  <td>
+                    <b>
+                      ${fmtNumber(row.strike)}
+
+                      ${
+                        Number(row.strike) === Number(p.ATM) &&
+                        Number(row.strike) === Number(d.max_pain)
+                        ? `
+                          <span class="tooltip tooltip-right">
+                            ⭐🎯
+                            <span class="tooltip-text">
+                              <b>ATM + Max Pain Strike</b><br>
+                              ⭐ ATM Strike: Current At-The-Money strike.<br>
+                              🎯 Max Pain: Strike with maximum option pain.
+                            </span>
+                          </span>
+                        `
+                        : Number(row.strike) === Number(p.ATM)
+                        ? `
+                          <span class="tooltip tooltip-right">
+                            ⭐
+                            <span class="tooltip-text">
+                              <b>ATM Strike</b><br>
+                              Current At-The-Money strike closest to spot price.
+                            </span>
+                          </span>
+                        `
+                        : Number(row.strike) === Number(d.max_pain)
+                        ? `
+                          <span class="tooltip tooltip-right">
+                            🎯
+                            <span class="tooltip-text">
+                              <b>Max Pain Strike</b><br>
+                              Strike where option writers theoretically face maximum payout pressure.
+                            </span>
+                          </span>
+                        `
+                        : ""
+                      }
+
+                    </b>
+                  </td>
+                  <td>${row.type || "-"}</td>
+                  <td>
+                    <b>${fmtNumber(row.probability,2)}%</b>
+                    <div class="bar"><div class="fill"
+                      style="width:${Math.min(100,Math.max(0,Number(row.probability||0)))}%;background:${Number(row.probability||0)>=70?'var(--green)':Number(row.probability||0)>=50?'var(--yellow)':'var(--red)'}"></div></div>
+                  </td>
+                  <td class="${stateClass(row.state)}">${row.state || "-"}</td>
+                  <td>${fmtNumber(row.strength,2)}</td>
+                  <td>${fmtNumber(row.weakness,2)}</td>
+                  <td>${fmtNumber(row.reversal,2)}</td>
+                  <td>${fmtNumber(row.breakdown,2)}</td>
+                  <td>${fmtNumber(row.breakout,2)}</td>
+                  <td><b>${fmtNumber(row.final_score,2)}</b></td>
+                  <td>${row.trade_state || "-"}</td>
+                  <td><span class="${actionClass(row.action)}">${row.action || "-"}</span></td>
+                  <td class="${confidenceClass(row.confidence)}">${row.confidence || "-"}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+/* Optional manual testing:
+   Paste your Python dictionary converted to valid JSON here and call:
+   dataStore = YOUR_OBJECT; activeIndex = "NIFTY"; renderTabs(); renderDashboard();
+*/
+
+connectWebSocket();
+</script>
+
+<div class="disclaimer-banner">
+⚠ EDUCATIONAL USE ONLY |
+This dashboard is created for study and research purposes only.
+It does not provide trading advice, investment recommendations,
+or guaranteed market predictions. Always perform your own analysis
+before making financial decisions.
+</div>
+
+<section class="card" style="margin-top:18px;">
+<div class="section-title">⚙ Market Intelligence Engine</div>
+<p style="color:#b8c7df;font-size:13px;line-height:1.7">
+Quantitative market analytics using option chain data, open interest,
+PCR behaviour, dynamic support/resistance modelling and market structure analysis.
+</p>
+</section>
+
+<section class="grid" style="margin-bottom:70px;">
+<div class="card span4">
+<div class="section-title">👤 About Delta Trading</div>
+<p style="color:#b8c7df;font-size:13px">
+Delta Trading focuses on derivatives analytics, quantitative research
+and data-driven visualization tools for understanding market behaviour.
+</p>
+</div>
+
+<div class="card span4">
+<div class="section-title">📞 Contact & Community</div>
+<p style="color:#b8c7df;font-size:13px">
+👨‍💻 Founder: Pavash Pritam<br>
+✉ Email: hitechz2024@gmail.com<br>
+🌐 Website: coming soon<br>
+▶ YouTube: coming soon<br>
+📱 Telegram Community
+</p>
+</div>
+
+<div class="card span4">
+<div class="section-title">🟢 System Status</div>
+<p style="color:#b8c7df;font-size:13px">
+WebSocket: Live<br>
+Market Data: Connected<br>
+Engine: Running<br>
+Dashboard Version: 1.0
+</p>
+</div>
+</section>
+
+<style>
+.disclaimer-banner{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:rgba(15,20,35,.96);
+border-top:1px solid #ffc857;
+color:#ffd166;
+padding:9px 18px;
+font-size:12px;
+text-align:center;
+z-index:9999;
+}
+</style>
+
+</body>
+</html>
