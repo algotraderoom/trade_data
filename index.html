@@ -338,6 +338,17 @@ function connectWebSocket() {
                 }
             }
 
+            if(incoming.type==="error"){
+
+                alert(incoming.message);
+
+                if(reconnectTimer){
+                    clearTimeout(reconnectTimer);
+                }
+
+                return;
+            }
+
         }
         catch(err){
             console.error("WS parse error:",err);
