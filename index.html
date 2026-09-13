@@ -22,7 +22,7 @@ body{
   color:var(--text); font-family:Inter,Segoe UI,Arial,sans-serif;
 }
 .app{max-width:1700px;margin:auto;padding:18px}
-.topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
+.topbar{position:relative;display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:16px}
 .title h1{margin:0;font-size:24px;letter-spacing:.3px}
 .title p{margin:4px 0 0;color:var(--muted);font-size:12px}
 .status{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--border);padding:9px 13px;border-radius:12px;font-size:12px}
@@ -79,6 +79,63 @@ tr:hover{background:rgba(90,167,255,.05)}
 .pcr-value{font-size:27px;font-weight:850}
 .footer{margin-top:12px;color:#61728f;font-size:10px;text-align:right}
 .error{color:#ff8292}
+.status-item{
+  color:var(--muted);
+  font-size:11px;
+  padding-left:8px;
+  border-left:1px solid var(--border);
+}
+.data-time{
+  color:var(--cyan);
+  font-weight:800;
+}
+.live-clock{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  text-align:center;
+  white-space:nowrap;
+  pointer-events:none;
+}
+.live-clock-date{
+  color:var(--muted);
+  font-size:10px;
+  letter-spacing:.8px;
+  text-transform:uppercase;
+  margin-bottom:2px;
+}
+.live-clock-time{
+  color:var(--cyan);
+  font-size:20px;
+  line-height:1;
+  font-weight:850;
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.5px;
+}
+.replay-nav{
+  display:none;
+  align-items:center;
+  gap:6px;
+}
+.replay-nav.show{display:flex}
+.replay-nav button{
+  background:#213252;
+  color:#fff;
+  border:1px solid #405477;
+  border-radius:6px;
+  padding:8px 11px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:800;
+}
+.replay-nav button:hover:not(:disabled){
+  background:#2a4169;
+}
+.replay-nav button:disabled{
+  opacity:.4;
+  cursor:not-allowed;
+}
 @media(max-width:1100px){
   .span8,.span6,.span4{grid-column:span 12}.span3{grid-column:span 6}.span2{grid-column:span 4}
 }
@@ -190,6 +247,149 @@ tr:hover{background:rgba(90,167,255,.05)}
     cursor:pointer;
 
 }
+
+/* =========================
+   Dashboard Replay Controls
+   ========================= */
+.dashboard-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:14px;
+}
+.mode-toggle{
+  display:flex;
+  gap:4px;
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:4px;
+  border-radius:10px;
+}
+.mode-btn{
+  border:0;
+  background:transparent;
+  color:var(--muted);
+  padding:8px 14px;
+  border-radius:7px;
+  cursor:pointer;
+  font-weight:800;
+  font-size:11px;
+}
+.mode-btn.active{
+  background:#213252;
+  color:#fff;
+}
+.replay-controls{
+  display:none;
+  align-items:center;
+  gap:8px;
+  flex-wrap:wrap;
+  background:var(--panel);
+  border:1px solid var(--border);
+  padding:8px 10px;
+  border-radius:10px;
+}
+.replay-controls.show{display:flex}
+.replay-controls label{
+  color:var(--muted);
+  font-size:10px;
+  text-transform:uppercase;
+  letter-spacing:.5px;
+}
+.replay-controls select,
+.replay-controls input{
+  background:#0e1628;
+  color:var(--text);
+  border:1px solid #405477;
+  border-radius:6px;
+  padding:7px 8px;
+  font-size:11px;
+}
+.replay-controls button{
+  background:#1d8cf8;
+  color:white;
+  border:0;
+  border-radius:6px;
+  padding:8px 12px;
+  cursor:pointer;
+  font-size:11px;
+  font-weight:800;
+}
+.replay-controls button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+.replay-status{
+  color:var(--muted);
+  font-size:10px;
+  margin-left:2px;
+}
+.replay-controls input[type="number"]{
+  width:64px;
+}
+.spot-signals{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.spot-signal{
+  background:rgba(255,255,255,.025);
+  border:1px solid #22304b;
+  border-radius:9px;
+  padding:7px 10px;
+}
+.spot-signal-head{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-bottom:4px;
+}
+.spot-signal-name{
+  font-size:13px;
+  font-weight:850;
+}
+.signal-hold{
+  color:#061a10;
+  background:var(--green);
+}
+.signal-wait{
+  color:#211700;
+  background:var(--yellow);
+}
+.signal-row{
+  display:grid;
+  grid-template-columns:82px 1fr;
+  align-items:center;
+  gap:6px;
+  color:var(--muted);
+  font-size:10px;
+  line-height:1.15;
+  padding:2px 0;
+}
+.signal-row b{
+  color:var(--text);
+  font-size:10px;
+}
+@media(max-width:900px){
+  .live-clock{position:static;transform:none;order:2;margin-left:auto;margin-right:auto}
+  .topbar{flex-wrap:wrap}
+  .spot-signals{grid-template-columns:1fr}
+}
+@media(max-width:650px){
+  .spot-signals{grid-template-columns:1fr}
+}
+.replay-badge{
+  display:inline-flex;
+  margin-left:7px;
+  padding:3px 7px;
+  border-radius:10px;
+  background:#a78bfa;
+  color:#140c2b;
+  font-size:9px;
+  font-weight:900;
+}
+
 </style>
 </head>
 <div id="wsPopup" class="ws-popup">
@@ -239,16 +439,57 @@ tr:hover{background:rgba(90,167,255,.05)}
       <h1>⚡ Delta Trading Analytics</h1>
       <p>Dynamic support/resistance • PCR • OI positioning • breakout/breakdown intelligence</p>
     </div>
+    <div class="live-clock" aria-label="Current time">
+      <div id="liveClockDate" class="live-clock-date">12 Sep 2026</div>
+      <div id="liveClockTime" class="live-clock-time">23:19:00</div>
+    </div>
     <div class="status">
       <span id="wsDot" class="dot"></span>
       <span id="wsText">WebSocket disconnected</span>
-      <span id="lastUpdate"></span>
+      <span id="clientIdDisplay" class="status-item">Client: -</span>
+      <span id="dataTimestamp" class="status-item data-time">Data: -</span>
+    </div>
+  </div>
+
+
+  <div class="dashboard-controls">
+    <div class="mode-toggle">
+      <button id="liveModeBtn" class="mode-btn active" onclick="setDashboardMode('LIVE')">LIVE</button>
+      <button id="replayModeBtn" class="mode-btn" onclick="setDashboardMode('REPLAY')">REPLAY</button>
+    </div>
+
+    <div id="replayControls" class="replay-controls">
+      <label for="replaySymbol">Symbol</label>
+      <select id="replaySymbol" onchange="updateReplayExpiries()"></select>
+
+      <label for="replayExpiry">Expiry</label>
+      <select id="replayExpiry" onchange="updateReplayDateRange()"></select>
+
+      <label for="replayDate">Date</label>
+      <input id="replayDate" type="date">
+
+      <label for="replayTime">Time</label>
+      <input id="replayTime" type="time" step="1">
+
+      <label for="replayStrikeRange">Strikes ± ATM</label>
+      <input id="replayStrikeRange" type="number" min="1" max="50" step="1" value="10"
+             title="Number of strikes shown above and below ATM in replay mode"
+             onchange="renderDashboard()">
+
+      <button id="replayLoadBtn" onclick="requestReplay()">Load Replay</button>
+
+      <div id="replayNav" class="replay-nav">
+        <button id="replayPrevBtn" onclick="navigateReplay(-1)">◀ Prev 1m</button>
+        <button id="replayNextBtn" onclick="navigateReplay(1)">Next 1m ▶</button>
+      </div>
+
+      <span id="replayStatus" class="replay-status"></span>
     </div>
   </div>
 
   <div id="tabs" class="tabs"></div>
   <div id="dashboard"></div>
-  <div class="footer">Live data is supplied by your trading bot through WebSocket.</div>
+  <div class="footer">Live and replay data are supplied by your trading bot through the same WebSocket connection.</div>
 </div>
 
 <script>
@@ -265,6 +506,18 @@ let ws = null;
 let reconnectTimer = null;
 let dataStore = {};
 let activeIndex = null;
+
+let dashboardMode = "LIVE";
+
+// Populated from replay_data.db by the WebSocket server.
+// Shape:
+// { SYMBOL: { EXPIRY: { first_timestamp, last_timestamp, snapshot_count } } }
+let replayCatalog = {};
+let replayCatalogLoaded = false;
+
+// Last successfully displayed historical snapshot.
+// Prev/Next navigation starts from the actual timestamp returned by the server.
+let replayCurrentTimestamp = null;
 
 function setWsStatus(connected, text) {
   document.getElementById("wsDot").classList.toggle("on", connected);
@@ -313,12 +566,36 @@ function connectWebSocket() {
             // Ignore auth messages
             if (incoming.type === "auth_ok") {
                 console.log("Dashboard authenticated");
+
+                // Ask the server for the replay catalog after authentication.
+                // This keeps replay controls synchronized with replay_data.db.
+                ws.send(JSON.stringify({
+                    type: "replay_catalog_request"
+                }));
+
+                return;
+            }
+
+            // Replay metadata returned by the server.
+            if (incoming.type === "replay_catalog") {
+                replayCatalog = (incoming.data && typeof incoming.data === "object")
+                    ? incoming.data
+                    : {};
+
+                replayCatalogLoaded = true;
+                populateReplaySymbols();
                 return;
             }
 
 
             // Only update dashboard data
             if (incoming.type === "dashboard") {
+
+                // During replay, never allow a live broadcast to overwrite
+                // the historical snapshot currently being displayed.
+                if (dashboardMode === "REPLAY" && incoming.mode === "LIVE") {
+                    return;
+                }
 
                 const payload = incoming.data;
 
@@ -333,14 +610,39 @@ function connectWebSocket() {
                     renderTabs();
                     renderDashboard();
 
-                    document.getElementById("lastUpdate").textContent =
-                        " • " + new Date().toLocaleTimeString();
+                    if (incoming.mode) {
+                        dashboardMode = String(incoming.mode).toUpperCase();
+                        updateModeButtons();
+                    }
+
+                    const dataTimestamp =
+                        (activeIndex && dataStore[activeIndex] && dataStore[activeIndex].timestamp)
+                        ? dataStore[activeIndex].timestamp
+                        : null;
+
+                    updateDataTimestamp(dataTimestamp);
+
+                    if (dashboardMode === "REPLAY" && dataTimestamp) {
+                        replayCurrentTimestamp = dataTimestamp;
+                        syncReplayInputsFromTimestamp(dataTimestamp);
+                        setReplayStatus("Replay: " + dataTimestamp);
+                    } else {
+                        document.getElementById("lastUpdate").textContent =
+                            " • " + new Date().toLocaleTimeString();
+                        replayCurrentTimestamp = null;
+                    }
+
+                    updateReplayNavigationButtons();
                 }
             }
 
             if(incoming.type==="error"){
 
-                alert(incoming.message);
+                if (dashboardMode === "REPLAY") {
+                    setReplayStatus("⚠ " + (incoming.message || "Replay request failed"));
+                } else {
+                    alert(incoming.message);
+                }
 
                 if(reconnectTimer){
                     clearTimeout(reconnectTimer);
@@ -448,7 +750,10 @@ function saveWSConfig(){
     WS_CLIENT_ID = clientId;
     WS_API_KEY = apiKey;
 
-
+    const clientEl = document.getElementById("clientIdDisplay");
+    if (clientEl) {
+        clientEl.textContent = "Client: " + WS_CLIENT_ID;
+    }
 
     document
         .getElementById("wsPopup")
@@ -473,6 +778,380 @@ function stateClass(state) {
   return "state";
 }
 
+
+function updateModeButtons() {
+    const liveBtn = document.getElementById("liveModeBtn");
+    const replayBtn = document.getElementById("replayModeBtn");
+    const controls = document.getElementById("replayControls");
+
+    liveBtn.classList.toggle("active", dashboardMode === "LIVE");
+    replayBtn.classList.toggle("active", dashboardMode === "REPLAY");
+    controls.classList.toggle("show", dashboardMode === "REPLAY");
+}
+
+function setReplayStatus(text) {
+    const el = document.getElementById("replayStatus");
+    if (el) el.textContent = text || "";
+}
+
+function populateReplaySymbols() {
+    const select = document.getElementById("replaySymbol");
+    if (!select) return;
+
+    const symbols = Object.keys(replayCatalog).sort();
+
+    if (!symbols.length) {
+        select.innerHTML = '<option value="">No replay data</option>';
+        select.value = "";
+        updateReplayExpiries();
+        setReplayStatus(replayCatalogLoaded ? "No replay data available" : "Loading replay catalog...");
+        return;
+    }
+
+    const previousValue = select.value;
+
+    select.innerHTML = symbols.map(symbol =>
+        `<option value="${symbol}">${symbol}</option>`
+    ).join("");
+
+    if (previousValue && replayCatalog[previousValue]) {
+        select.value = previousValue;
+    } else if (activeIndex && replayCatalog[activeIndex]) {
+        select.value = activeIndex;
+    } else {
+        select.value = symbols[0];
+    }
+
+    updateReplayExpiries();
+}
+
+function updateReplayExpiries() {
+    const symbolSelect = document.getElementById("replaySymbol");
+    const expirySelect = document.getElementById("replayExpiry");
+    if (!symbolSelect || !expirySelect) return;
+
+    const symbol = symbolSelect.value;
+    const expiryData = replayCatalog[symbol] || {};
+    const expiries = Object.keys(expiryData).sort();
+
+    if (!expiries.length) {
+        expirySelect.innerHTML = '<option value="">No expiry</option>';
+        expirySelect.value = "";
+        updateReplayDateRange();
+        return;
+    }
+
+    const previousValue = expirySelect.value;
+
+    expirySelect.innerHTML = expiries.map(expiry =>
+        `<option value="${expiry}">${expiry}</option>`
+    ).join("");
+
+    if (previousValue && expiryData[previousValue]) {
+        expirySelect.value = previousValue;
+    } else {
+        expirySelect.value = expiries[0];
+    }
+
+    updateReplayDateRange();
+    updateReplayNavigationButtons();
+}
+
+function updateReplayDateRange() {
+    const symbol = document.getElementById("replaySymbol")?.value;
+    const expiry = document.getElementById("replayExpiry")?.value;
+    const dateInput = document.getElementById("replayDate");
+    const timeInput = document.getElementById("replayTime");
+
+    if (!symbol || !expiry || !dateInput || !timeInput) return;
+
+    const meta = replayCatalog?.[symbol]?.[expiry];
+    if (!meta) return;
+
+    const first = String(meta.first_timestamp || "");
+    const last = String(meta.last_timestamp || "");
+
+    const firstDate = first.slice(0, 10);
+    const lastDate = last.slice(0, 10);
+
+    dateInput.min = firstDate || "";
+    dateInput.max = lastDate || "";
+
+    // Keep an existing valid date; otherwise start at the first available date.
+    if (!dateInput.value ||
+        (firstDate && dateInput.value < firstDate) ||
+        (lastDate && dateInput.value > lastDate)) {
+        dateInput.value = firstDate || "";
+    }
+
+    // If the selected date is the first/last replay date, use a sensible
+    // boundary time. For dates in between, 09:30 is a safe starting point.
+    if (!timeInput.value) {
+        timeInput.value = "09:30:00";
+    }
+
+    setReplayStatus(
+        `${fmtReplayCount(meta.snapshot_count)} snapshots • ${first || "-"} → ${last || "-"}`
+    );
+}
+
+function fmtReplayCount(value) {
+    const n = Number(value);
+    return Number.isFinite(n) ? n.toLocaleString("en-IN") : "0";
+}
+
+function requestReplayCatalog() {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+
+    replayCatalogLoaded = false;
+    setReplayStatus("Loading replay catalog...");
+
+    ws.send(JSON.stringify({
+        type: "replay_catalog_request"
+    }));
+}
+
+function updateLiveClock() {
+    const now = new Date();
+    const dateEl = document.getElementById("liveClockDate");
+    const timeEl = document.getElementById("liveClockTime");
+
+    if (!dateEl || !timeEl) return;
+
+    dateEl.textContent = new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+    }).format(now);
+
+    timeEl.textContent = new Intl.DateTimeFormat("en-IN", {
+        timeZone: "Asia/Kolkata",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+    }).format(now);
+}
+
+updateLiveClock();
+setInterval(updateLiveClock, 1000);
+
+function updateDataTimestamp(timestamp) {
+    const el = document.getElementById("dataTimestamp");
+    if (el) {
+        el.textContent = timestamp ? "Data: " + timestamp : "Data: -";
+    }
+}
+
+function timestampToDate(timestamp) {
+    if (!timestamp) return null;
+
+    const m = String(timestamp).match(
+        /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})$/
+    );
+
+    if (!m) return null;
+
+    // Replay timestamps are market-local timestamps. We deliberately do not
+    // convert them through UTC.
+    return new Date(
+        Number(m[1]),
+        Number(m[2]) - 1,
+        Number(m[3]),
+        Number(m[4]),
+        Number(m[5]),
+        Number(m[6])
+    );
+}
+
+function dateToTimestamp(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const pad = n => String(n).padStart(2, "0");
+
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+           `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+}
+
+function syncReplayInputsFromTimestamp(timestamp) {
+    if (!timestamp) return;
+
+    const parts = String(timestamp).split(" ");
+    if (parts.length !== 2) return;
+
+    const dateInput = document.getElementById("replayDate");
+    const timeInput = document.getElementById("replayTime");
+
+    if (dateInput) dateInput.value = parts[0];
+    if (timeInput) timeInput.value = parts[1];
+}
+
+function getSelectedReplayMeta() {
+    const symbol = document.getElementById("replaySymbol")?.value;
+    const expiry = document.getElementById("replayExpiry")?.value;
+
+    if (!symbol || !expiry) return null;
+
+    return replayCatalog?.[symbol]?.[expiry] || null;
+}
+
+function updateReplayNavigationButtons() {
+    const nav = document.getElementById("replayNav");
+    const prevBtn = document.getElementById("replayPrevBtn");
+    const nextBtn = document.getElementById("replayNextBtn");
+
+    if (!nav || !prevBtn || !nextBtn) return;
+
+    const visible = dashboardMode === "REPLAY" && !!replayCurrentTimestamp;
+    nav.classList.toggle("show", visible);
+
+    if (!visible) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+    }
+
+    const current = timestampToDate(replayCurrentTimestamp);
+    const meta = getSelectedReplayMeta();
+
+    if (!current || !meta) {
+        prevBtn.disabled = true;
+        nextBtn.disabled = true;
+        return;
+    }
+
+    const first = timestampToDate(meta.first_timestamp);
+    const last = timestampToDate(meta.last_timestamp);
+
+    prevBtn.disabled = !first || current.getTime() <= first.getTime();
+    nextBtn.disabled = !last || current.getTime() >= last.getTime();
+}
+
+function navigateReplay(direction) {
+    if (dashboardMode !== "REPLAY" || !replayCurrentTimestamp) {
+        return;
+    }
+
+    const current = timestampToDate(replayCurrentTimestamp);
+    if (!current) return;
+
+    const target = new Date(current.getTime() + direction * 60 * 1000);
+    const meta = getSelectedReplayMeta();
+
+    if (meta) {
+        const first = timestampToDate(meta.first_timestamp);
+        const last = timestampToDate(meta.last_timestamp);
+
+        if (first && target < first) return;
+        if (last && target > last) return;
+    }
+
+    const timestamp = dateToTimestamp(target);
+    if (!timestamp) return;
+
+    syncReplayInputsFromTimestamp(timestamp);
+    requestReplay(timestamp);
+}
+
+function setDashboardMode(mode) {
+    mode = String(mode || "LIVE").toUpperCase();
+
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        setReplayStatus("WebSocket not connected");
+        return;
+    }
+
+    dashboardMode = mode;
+    updateModeButtons();
+
+    if (mode === "LIVE") {
+        replayCurrentTimestamp = null;
+        updateReplayNavigationButtons();
+        setReplayStatus("");
+
+        ws.send(JSON.stringify({
+            type: "dashboard_mode",
+            mode: "LIVE"
+        }));
+    } else {
+        if (replayCatalogLoaded) {
+            populateReplaySymbols();
+        } else {
+            requestReplayCatalog();
+        }
+
+        ws.send(JSON.stringify({
+            type: "dashboard_mode",
+            mode: "REPLAY"
+        }));
+
+        if (replayCatalogLoaded) {
+            setReplayStatus("Replay mode");
+        }
+    }
+}
+
+function requestReplay(requestedTimestamp = null) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) {
+        setReplayStatus("WebSocket not connected");
+        return;
+    }
+
+    const symbol = document.getElementById("replaySymbol").value;
+    const expiry = document.getElementById("replayExpiry").value;
+    const date = document.getElementById("replayDate").value;
+    const time = document.getElementById("replayTime").value;
+
+    if (!symbol || !expiry) {
+        setReplayStatus("Select symbol and expiry");
+        return;
+    }
+
+    if (!requestedTimestamp && (!date || !time)) {
+        setReplayStatus("Select date and time");
+        return;
+    }
+
+    const timestamp = requestedTimestamp || `${date} ${time}`;
+
+    const meta = replayCatalog?.[symbol]?.[expiry];
+    if (!meta) {
+        setReplayStatus("Replay dataset not available");
+        return;
+    }
+
+    const first = String(meta.first_timestamp || "");
+    const last = String(meta.last_timestamp || "");
+
+    if ((first && timestamp < first) || (last && timestamp > last)) {
+        setReplayStatus(`Time outside replay range: ${first} → ${last}`);
+        return;
+    }
+
+    dashboardMode = "REPLAY";
+    updateModeButtons();
+    setReplayStatus("Loading " + timestamp + "...");
+
+    ws.send(JSON.stringify({
+        type: "replay_request",
+        symbol: symbol,
+        expiry: expiry,
+        timestamp: timestamp
+    }));
+}
+
+function initializeReplayControls() {
+    // Do not use hard-coded replay dates/symbols.
+    // The catalog will arrive from the server after auth_ok.
+    populateReplaySymbols();
+    updateDataTimestamp(null);
+    updateReplayNavigationButtons();
+    updateModeButtons();
+}
+
 function renderTabs() {
   const tabs = document.getElementById("tabs");
   tabs.innerHTML = Object.keys(dataStore).map(symbol => `
@@ -481,6 +1160,218 @@ function renderTabs() {
       ${symbol}
     </button>
   `).join("");
+}
+
+function getReplayStrikeRange() {
+  const input = document.getElementById("replayStrikeRange");
+  let value = input ? Number(input.value) : 10;
+
+  if (!Number.isFinite(value)) value = 10;
+
+  value = Math.max(1, Math.min(50, Math.round(value)));
+
+  if (input) input.value = value;
+
+  return value;
+}
+
+function getVisibleDynamicLevels(levels, atm) {
+  if (!Array.isArray(levels)) return [];
+
+  // LIVE: keep the existing full dynamic-level table.
+  if (dashboardMode !== "REPLAY") {
+    return levels;
+  }
+
+  const range = getReplayStrikeRange();
+
+  if (atm === null || atm === undefined || Number.isNaN(Number(atm))) {
+    return levels;
+  }
+
+  const sorted = [...levels].sort(
+    (a, b) => Number(a.strike) - Number(b.strike)
+  );
+
+  if (!sorted.length) return [];
+
+  // Find the ATM strike in the dynamic-level data.
+  // If it is not present exactly, use the nearest available strike.
+  let atmIndex = sorted.findIndex(
+    row => Number(row.strike) === Number(atm)
+  );
+
+  if (atmIndex < 0) {
+    let bestDistance = Infinity;
+
+    sorted.forEach((row, index) => {
+      const distance = Math.abs(Number(row.strike) - Number(atm));
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        atmIndex = index;
+      }
+    });
+  }
+
+  const start = Math.max(0, atmIndex - range);
+  const end = Math.min(sorted.length, atmIndex + range + 1);
+
+  return sorted.slice(start, end).sort(
+    (a, b) => Number(b.strike) - Number(a.strike)
+  );
+}
+
+/*
+ * Same spot-position logic as get_spot_level_states().
+ *
+ * The replay dashboard has one dyn_level dataset per underlying symbol,
+ * so we evaluate BOTH option directions (CALL and PUT) from the same
+ * spot/dynamic-level data instead of requiring separate CALL/PUT rows.
+ *
+ * Returns:
+ *   {
+ *     CALL: { above_state, below_state, above_type, below_type },
+ *     PUT:  { above_state, below_state, above_type, below_type }
+ *   }
+ */
+function getSpotLevelStates(analysisData) {
+  const spot = Number(analysisData?.spot_price);
+  const levels = Array.isArray(analysisData?.dyn_level)
+    ? analysisData.dyn_level
+    : [];
+
+  const result = {
+    CALL: {
+      above_state: null,
+      below_state: null,
+      above_type: null,
+      below_type: null,
+      above_strike: null,
+      below_strike: null
+    },
+    PUT: {
+      above_state: null,
+      below_state: null,
+      above_type: null,
+      below_type: null,
+      above_strike: null,
+      below_strike: null
+    }
+  };
+
+  if (!Number.isFinite(spot) || !levels.length) {
+    return result;
+  }
+
+  const validLevels = levels
+    .filter(row => Number.isFinite(Number(row.strike)))
+    .map(row => ({
+      ...row,
+      strike: Number(row.strike)
+    }));
+
+  if (!validLevels.length) {
+    return result;
+  }
+
+  const below = validLevels.filter(row => row.strike <= spot);
+  const above = validLevels.filter(row => row.strike >= spot);
+
+  // Exact translation of the supplied Python logic.
+  if (below.length) {
+    const rowBelow = below.reduce(
+      (best, row) => !best || row.strike > best.strike ? row : best,
+      null
+    );
+
+    result.CALL.below_strike = rowBelow.strike;
+    result.PUT.below_strike = rowBelow.strike;
+
+    if (rowBelow.type === "SUPPORT") {
+      result.CALL.below_type = "S";
+      if (["STRENGTHENING"].includes(rowBelow.state)) {
+        result.CALL.below_state = "hold";
+      }
+
+      result.PUT.below_type = "S";
+      if (["BREAKDOWN_READY", "BREAKDOWN_CONFIRMED"].includes(rowBelow.state)) {
+        result.PUT.below_state = "hold";
+      }
+
+    } else if (rowBelow.type === "RESISTANCE") {
+      result.CALL.below_type = "R";
+      if (["BREAKOUT_CONFIRMED", "FAILED_BREAKOUT_REJECTION"].includes(rowBelow.state)) {
+        result.CALL.below_state = "hold";
+      }
+
+      result.PUT.below_type = "R";
+      if (["RESISTANCE_UNCERTAIN"].includes(rowBelow.state)) {
+        result.PUT.below_state = "hold";
+      }
+    }
+  }
+
+  if (above.length) {
+    const rowAbove = above.reduce(
+      (best, row) => !best || row.strike < best.strike ? row : best,
+      null
+    );
+
+    result.CALL.above_strike = rowAbove.strike;
+    result.PUT.above_strike = rowAbove.strike;
+
+    if (rowAbove.type === "SUPPORT") {
+      result.CALL.above_type = "S";
+      if (["FAILED_BREAKDOWN_RECOVERY"].includes(rowAbove.state)) {
+        result.CALL.above_state = "hold";
+      }
+
+      result.PUT.above_type = "S";
+      if (["SUPPORT_UNCERTAIN", "BREAKDOWN_CONFIRMED"].includes(rowAbove.state)) {
+        result.PUT.above_state = "hold";
+      }
+
+    } else if (rowAbove.type === "RESISTANCE") {
+      result.CALL.above_type = "R";
+      if (["BREAKOUT_CONFIRMED", "BREAKOUT_READY"].includes(rowAbove.state)) {
+        result.CALL.above_state = "hold";
+      }
+
+      result.PUT.above_type = "R";
+      if (["STRENGTHENING"].includes(rowAbove.state)) {
+        result.PUT.above_state = "hold";
+      }
+    }
+  }
+
+  return result;
+}
+
+function renderSpotSignalCard(optionType, state) {
+  const signal = state.above_state === "hold" || state.below_state === "hold"
+    ? "HOLD"
+    : "WAIT";
+
+  const signalClass = signal === "HOLD" ? "signal-hold" : "signal-wait";
+
+  return `
+    <div class="spot-signal">
+      <div class="spot-signal-head">
+        <span class="spot-signal-name">${optionType}</span>
+        <span class="pill ${signalClass}">${signal}</span>
+      </div>
+
+      <div class="signal-row">
+        <span>Below Spot</span>
+        <b>${state.below_strike != null ? fmtNumber(state.below_strike, 0) : "-"} &nbsp; ${state.below_type || "-"} / ${state.below_state || "-"}</b>
+      </div>
+
+      <div class="signal-row">
+        <span>Above Spot</span>
+        <b>${state.above_strike != null ? fmtNumber(state.above_strike, 0) : "-"} &nbsp; ${state.above_type || "-"} / ${state.above_state || "-"}</b>
+      </div>
+    </div>
+  `;
 }
 
 function renderDashboard() {
@@ -492,9 +1383,17 @@ function renderDashboard() {
   }
 
   const p = d.atm_pcr || {};
-  //const levels = Array.isArray(d.dyn_level) ? d.dyn_level : [];
-  const levels = Array.isArray(d.dyn_level) ? [...d.dyn_level].sort((a,b) => Number(b.strike) - Number(a.strike)): [];
+  const allLevels = Array.isArray(d.dyn_level)
+    ? [...d.dyn_level].sort((a,b) => Number(b.strike) - Number(a.strike))
+    : [];
+
+  // Replay can be restricted to N strikes above and below ATM.
+  // Live mode continues to show the complete dynamic-level table.
+  const levels = getVisibleDynamicLevels(allLevels, p.ATM);
+
   const expiry = Array.isArray(d.expiry) ? d.expiry.join(", ") : (d.expiry || "-");
+
+  const spotLevelStates = getSpotLevelStates(d);
 
   const support = (d.support_strikes || []).map(x =>
     `<span class="level support">🟢 ${fmtNumber(x)}</span>`).join("");
@@ -585,7 +1484,20 @@ function renderDashboard() {
       </div>
 
       <div class="card span12">
-        <div class="section-title">Dynamic Support / Resistance Intelligence</div>
+        <div class="section-title">Spot Position Signal • Dynamic Support / Resistance</div>
+        <div class="spot-signals">
+          ${renderSpotSignalCard("CALL", spotLevelStates.CALL)}
+          ${renderSpotSignalCard("PUT", spotLevelStates.PUT)}
+        </div>
+      </div>
+
+      <div class="card span12">
+        <div class="section-title">
+          Dynamic Support / Resistance Intelligence
+          ${dashboardMode === "REPLAY"
+            ? `<span class="replay-badge">Showing ±${getReplayStrikeRange()} strikes from ATM</span>`
+            : ""}
+        </div>
         <div class="table-wrap">
           <table>
             <thead>
@@ -673,6 +1585,15 @@ function renderDashboard() {
    dataStore = YOUR_OBJECT; activeIndex = "NIFTY"; renderTabs(); renderDashboard();
 */
 
+initializeReplayControls();
+
+const clientEl = document.getElementById("clientIdDisplay");
+if (clientEl) {
+    clientEl.textContent = WS_CLIENT_ID
+        ? "Client: " + WS_CLIENT_ID
+        : "Client: -";
+}
+
 //connectWebSocket();
 </script>
 
@@ -718,7 +1639,7 @@ and data-driven visualization tools for understanding market behaviour.
 WebSocket: Live<br>
 Market Data: Connected<br>
 Engine: Running<br>
-Dashboard Version: 1.0
+Dashboard Version: 4.0
 </p>
 </div>
 </section>
