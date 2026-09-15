@@ -391,6 +391,35 @@ tr:hover{background:rgba(90,167,255,.05)}
   font-weight:900;
 }
 
+.dynamic-header{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;}
+.dynamic-title{flex:none;}
+.dynamic-header-right{display:flex;align-items:center;gap:10px;margin-left:auto;min-width:0;}
+.replay-table-timestamp{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 9px;
+  border-radius:8px;
+  background:#101b31;
+  border:1px solid #263453;
+  color:var(--cyan);
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.25px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+  text-shadow:0 0 8px rgba(53,214,232,.35);
+}
+.replay-strike-control{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;}
+.replay-strike-control label{color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.4px;}
+.replay-strike-control input{width:48px;background:#0e1628;color:var(--text);border:1px solid #405477;border-radius:6px;padding:5px 6px;font-size:10px;text-align:center;}
+.replay-table-nav{display:none;align-items:center;gap:6px;flex:none;}
+.replay-table-nav.show{display:flex;}
+.replay-table-nav button{background:#213252;color:#fff;border:1px solid #405477;border-radius:6px;padding:7px 10px;cursor:pointer;font-size:10px;font-weight:800;}
+.replay-table-nav button:hover:not(:disabled){background:#2a4169;}
+.replay-table-nav button:disabled{opacity:.4;cursor:not-allowed;}
+@media(max-width:900px){.dynamic-header{align-items:flex-start}.dynamic-header-right{margin-left:auto;flex-wrap:wrap;justify-content:flex-end;}}
+@media(max-width:650px){.dynamic-header{flex-direction:column;align-items:stretch}.dynamic-header-right{margin-left:0;justify-content:flex-start;}}
+
 </style>
 </head>
 <div id="wsPopup" class="ws-popup">
@@ -451,7 +480,7 @@ tr:hover{background:rgba(90,167,255,.05)}
       <span id="wsDot" class="dot"></span>
       <span id="wsText">WebSocket disconnected</span>
       <span id="clientIdDisplay" class="status-item">Client: -</span>
-      <span id="dataTimestamp" class="status-item data-time">Data: -</span>
+      <!-- <span id="dataTimestamp" class="status-item data-time">Data: -</span> -->
     </div>
   </div>
 
@@ -474,11 +503,6 @@ tr:hover{background:rgba(90,167,255,.05)}
 
       <label for="replayTime">Time</label>
       <input id="replayTime" type="time" step="1">
-
-      <label for="replayStrikeRange">Strikes ± ATM</label>
-      <input id="replayStrikeRange" type="number" min="1" max="50" step="1" value="10"
-             title="Number of strikes shown above and below ATM in replay mode"
-             onchange="renderDashboard()">
 
       <button id="replayLoadBtn" onclick="requestReplay()">Load Replay</button>
 
@@ -522,6 +546,10 @@ let replayCatalogLoaded = false;
 // Last successfully displayed historical snapshot.
 // Prev/Next navigation starts from the actual timestamp returned by the server.
 let replayCurrentTimestamp = null;
+
+// Authoritative timestamp from the received dashboard payload.
+// This same value is used by both timestamp displays.
+let dataTimestamp = null;
 
 function setWsStatus(connected, text) {
   document.getElementById("wsDot").classList.toggle("on", connected);
@@ -619,7 +647,7 @@ function connectWebSocket() {
                         updateModeButtons();
                     }
 
-                    const dataTimestamp =
+                    dataTimestamp =
                         (activeIndex && dataStore[activeIndex] && dataStore[activeIndex].timestamp)
                         ? dataStore[activeIndex].timestamp
                         : null;
@@ -637,6 +665,10 @@ function connectWebSocket() {
                     }
 
                     updateReplayNavigationButtons();
+
+                    // Render after dataTimestamp is updated so the Dynamic
+                    // Support / Resistance header uses the exact same value.
+                    renderDashboard();
                 }
             }
 
@@ -756,7 +788,7 @@ function saveWSConfig(){
 
     const clientEl = document.getElementById("clientIdDisplay");
     if (clientEl) {
-        clientEl.textContent = "Client: " + WS_CLIENT_ID;
+        clientEl.textContent = "User: " + WS_CLIENT_ID;
     }
 
     document
@@ -1007,14 +1039,20 @@ function updateReplayNavigationButtons() {
     const prevBtn = document.getElementById("replayPrevBtn");
     const nextBtn = document.getElementById("replayNextBtn");
 
-    if (!nav || !prevBtn || !nextBtn) return;
+    // Duplicate navigation beside the Dynamic Support / Resistance table.
+    const tableNav = document.getElementById("replayTableNav");
+    const tablePrevBtn = document.getElementById("replayTablePrevBtn");
+    const tableNextBtn = document.getElementById("replayTableNextBtn");
 
     const visible = dashboardMode === "REPLAY" && !!replayCurrentTimestamp;
-    nav.classList.toggle("show", visible);
+
+    if (nav) nav.classList.toggle("show", visible);
+    if (tableNav) tableNav.classList.toggle("show", visible);
 
     if (!visible) {
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
+        [prevBtn, nextBtn, tablePrevBtn, tableNextBtn].forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
         return;
     }
 
@@ -1022,16 +1060,21 @@ function updateReplayNavigationButtons() {
     const meta = getSelectedReplayMeta();
 
     if (!current || !meta) {
-        prevBtn.disabled = true;
-        nextBtn.disabled = true;
+        [prevBtn, nextBtn, tablePrevBtn, tableNextBtn].forEach(btn => {
+            if (btn) btn.disabled = true;
+        });
         return;
     }
 
     const first = timestampToDate(meta.first_timestamp);
     const last = timestampToDate(meta.last_timestamp);
+    const prevDisabled = !first || current.getTime() <= first.getTime();
+    const nextDisabled = !last || current.getTime() >= last.getTime();
 
-    prevBtn.disabled = !first || current.getTime() <= first.getTime();
-    nextBtn.disabled = !last || current.getTime() >= last.getTime();
+    if (prevBtn) prevBtn.disabled = prevDisabled;
+    if (nextBtn) nextBtn.disabled = nextDisabled;
+    if (tablePrevBtn) tablePrevBtn.disabled = prevDisabled;
+    if (tableNextBtn) tableNextBtn.disabled = nextDisabled;
 }
 
 function navigateReplay(direction) {
@@ -1073,6 +1116,7 @@ function setDashboardMode(mode) {
 
     if (mode === "LIVE") {
         replayCurrentTimestamp = null;
+        dataTimestamp = null;
         updateReplayNavigationButtons();
         setReplayStatus("");
 
@@ -1168,11 +1212,11 @@ function renderTabs() {
 
 function getReplayStrikeRange() {
   const input = document.getElementById("replayStrikeRange");
-  let value = input ? Number(input.value) : 10;
+  let value = input ? Number(input.value) : 5;
 
-  if (!Number.isFinite(value)) value = 10;
+  if (!Number.isFinite(value)) value = 5;
 
-  value = Math.max(1, Math.min(50, Math.round(value)));
+  value = Math.max(1, Math.min(10, Math.round(value)));
 
   if (input) input.value = value;
 
@@ -1496,11 +1540,36 @@ function renderDashboard() {
       </div>
 
       <div class="card span12">
-        <div class="section-title">
-          Dynamic Support / Resistance Intelligence
-          ${dashboardMode === "REPLAY"
-            ? `<span class="replay-badge">Showing ±${getReplayStrikeRange()} strikes from ATM</span>`
-            : ""}
+        <div class="section-title dynamic-header">
+          <span class="dynamic-title">Dynamic Support / Resistance Intelligence</span>
+
+          ${dashboardMode === "REPLAY" ? `
+            <div class="dynamic-header-right">
+
+              <span class="replay-strike-control">
+                <label for="replayStrikeRange">STRIKES ± ATM</label>
+                <input id="replayStrikeRange"
+                       type="number"
+                       min="1"
+                       max="10"
+                       step="1"
+                       value="${getReplayStrikeRange()}"
+                       title="Number of strikes shown above and below ATM in replay mode"
+                       onchange="renderDashboard()">
+              </span>
+
+              ${dataTimestamp
+                ? `<span class="replay-table-timestamp">${dataTimestamp}</span>`
+                : ""}
+
+              <div id="replayTableNav"
+                   class="replay-table-nav ${replayCurrentTimestamp ? "show" : ""}">
+                <button id="replayTablePrevBtn" onclick="navigateReplay(-1)">◀ Prev 1m</button>
+                <button id="replayTableNextBtn" onclick="navigateReplay(1)">Next 1m ▶</button>
+              </div>
+
+            </div>
+          ` : ""}
         </div>
         <div class="table-wrap">
           <table>
