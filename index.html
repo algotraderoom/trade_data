@@ -1325,7 +1325,10 @@ function getSpotLevelStates(analysisData) {
   const below = validLevels.filter(row => row.strike <= spot);
   const above = validLevels.filter(row => row.strike >= spot);
 
-  // Exact translation of the supplied Python logic.
+  // =========================================================
+  // NEAREST LEVEL BELOW SPOT
+  // =========================================================
+
   if (below.length) {
     const rowBelow = below.reduce(
       (best, row) => !best || row.strike > best.strike ? row : best,
@@ -1336,28 +1339,35 @@ function getSpotLevelStates(analysisData) {
     result.PUT.below_strike = rowBelow.strike;
 
     if (rowBelow.type === "SUPPORT") {
+
       result.CALL.below_type = "S";
-      if (["STRENGTHENING"].includes(rowBelow.state)) {
+      if (rowBelow.state === "STRENGTHENING") {
         result.CALL.below_state = "hold";
       }
 
       result.PUT.below_type = "S";
-      if (["BREAKDOWN_READY", "BREAKDOWN_CONFIRMED"].includes(rowBelow.state)) {
+      if (
+        rowBelow.state === "BREAKDOWN_READY" ||
+        rowBelow.state === "BREAKDOWN_CONFIRMED"
+      ) {
         result.PUT.below_state = "hold";
       }
 
     } else if (rowBelow.type === "RESISTANCE") {
+
       result.CALL.below_type = "R";
-      if (["BREAKOUT_CONFIRMED", "FAILED_BREAKOUT_REJECTION"].includes(rowBelow.state)) {
+      if (rowBelow.state === "BREAKOUT_CONFIRMED") {
         result.CALL.below_state = "hold";
       }
 
       result.PUT.below_type = "R";
-      if (["RESISTANCE_UNCERTAIN"].includes(rowBelow.state)) {
-        result.PUT.below_state = "hold";
-      }
+      // RESISTANCE_UNCERTAIN -> null
     }
   }
+
+  // =========================================================
+  // NEAREST LEVEL ABOVE SPOT
+  // =========================================================
 
   if (above.length) {
     const rowAbove = above.reduce(
@@ -1369,24 +1379,29 @@ function getSpotLevelStates(analysisData) {
     result.PUT.above_strike = rowAbove.strike;
 
     if (rowAbove.type === "SUPPORT") {
+
       result.CALL.above_type = "S";
-      if (["FAILED_BREAKDOWN_RECOVERY"].includes(rowAbove.state)) {
+      if (rowAbove.state === "FAILED_BREAKDOWN_RECOVERY") {
         result.CALL.above_state = "hold";
       }
 
       result.PUT.above_type = "S";
-      if (["SUPPORT_UNCERTAIN", "BREAKDOWN_CONFIRMED"].includes(rowAbove.state)) {
+      if (rowAbove.state === "BREAKDOWN_CONFIRMED") {
         result.PUT.above_state = "hold";
       }
 
     } else if (rowAbove.type === "RESISTANCE") {
+
       result.CALL.above_type = "R";
-      if (["BREAKOUT_CONFIRMED", "BREAKOUT_READY"].includes(rowAbove.state)) {
+      if (
+        rowAbove.state === "BREAKOUT_CONFIRMED" ||
+        rowAbove.state === "BREAKOUT_READY"
+      ) {
         result.CALL.above_state = "hold";
       }
 
       result.PUT.above_type = "R";
-      if (["STRENGTHENING"].includes(rowAbove.state)) {
+      if (rowAbove.state === "STRENGTHENING") {
         result.PUT.above_state = "hold";
       }
     }
