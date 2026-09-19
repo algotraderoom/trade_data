@@ -1423,15 +1423,13 @@ function renderSpotSignalCard(optionType, state) {
         <span class="spot-signal-name">${optionType}</span>
         <span class="pill ${signalClass}">${signal}</span>
       </div>
-
-      <div class="signal-row">
-        <span>Below Spot</span>
-        <b>${state.below_strike != null ? fmtNumber(state.below_strike, 0) : "-"} &nbsp; ${state.below_type || "-"} / ${state.below_state || "-"}</b>
-      </div>
-
       <div class="signal-row">
         <span>Above Spot</span>
         <b>${state.above_strike != null ? fmtNumber(state.above_strike, 0) : "-"} &nbsp; ${state.above_type || "-"} / ${state.above_state || "-"}</b>
+      </div>
+      <div class="signal-row">
+        <span>Below Spot</span>
+        <b>${state.below_strike != null ? fmtNumber(state.below_strike, 0) : "-"} &nbsp; ${state.below_type || "-"} / ${state.below_state || "-"}</b>
       </div>
     </div>
   `;
