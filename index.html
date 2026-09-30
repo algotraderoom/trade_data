@@ -1479,12 +1479,12 @@ function calculateStructuralSignalLegacy(analysisData) {
   }
 
   const valid = levels
-    .filter(row => Number.isFinite(Number(row.strike)) && row.type)
+    .filter(row => Number.isFinite(Number(row.strike)))
     .map(row => ({ ...row, strike: Number(row.strike) }));
 
-  const below = valid.filter(row => row.strike <= spot)
+  const below = valid.filter(row => row.strike < spot)
     .sort((a,b) => b.strike - a.strike).slice(0, 3);
-  const above = valid.filter(row => row.strike >= spot)
+  const above = valid.filter(row => row.strike > spot)
     .sort((a,b) => a.strike - b.strike).slice(0, 3);
 
   const weights = { 1: 1.0, 2: 0.60, 3: 0.30 };
@@ -1494,18 +1494,18 @@ function calculateStructuralSignalLegacy(analysisData) {
     const weakness = Number(row.weakness) || 0;
     const breakout = Number(row.breakout) || 0;
     const breakdown = Number(row.breakdown) || 0;
-    const type = String(row.type || "").toUpperCase();
-    const state = String(row.state || "").toUpperCase();
+    const type = row.type || "";
+    const state = row.state || "";
 
     let rawScore = 0;
     if (type === "SUPPORT") {
       rawScore = (strength - weakness) - breakdown * 0.25;
-      if (state === "BREAKDOWN_CONFIRMED") rawScore = -25;
-      else if (state === "FAILED_BREAKDOWN_RECOVERY") rawScore = 15;
+      if (state === "BREAKDOWN_CONFIRMED") rawScore -= 25;
+      else if (state === "FAILED_BREAKDOWN_RECOVERY") rawScore += 15;
     } else if (type === "RESISTANCE") {
       rawScore = (weakness - strength) + breakout * 0.25;
-      if (state === "BREAKOUT_CONFIRMED") rawScore = 25;
-      else if (state === "FAILED_BREAKOUT_REJECTION") rawScore = -15;
+      if (state === "BREAKOUT_CONFIRMED") rawScore += 25;
+      else if (state === "FAILED_BREAKOUT_REJECTION") rawScore -= 15;
     }
 
     const weight = weights[rank] || 0;
@@ -1536,9 +1536,10 @@ function calculateStructuralSignalLegacy(analysisData) {
 
   const broader = all.filter(x => x.rank > 1);
   const broaderWeight = broader.reduce((sum, x) => sum + x.weight, 0);
+
   const broaderScore = broaderWeight
     ? broader.reduce((sum, x) => sum + x.raw_score * x.weight, 0) / broaderWeight
-    : 0;
+    : immediateScore;
 
   const structuralRaw = immediateScore * 0.50 + broaderScore * 0.50;
   const netScore = clampStructural(structuralRaw);
